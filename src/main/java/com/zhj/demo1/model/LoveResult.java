@@ -10,6 +10,7 @@ import java.util.List;
 public class LoveResult {
 
     private List<LoveStages> results;
+    private int count;
 
     public List<LoveStages> getResults() {
         return results;
@@ -17,5 +18,13 @@ public class LoveResult {
 
     public void setResults(List<LoveStages> results) {
         this.results = results;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
     }
 }
