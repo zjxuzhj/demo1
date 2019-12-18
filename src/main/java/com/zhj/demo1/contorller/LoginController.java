@@ -27,13 +27,12 @@ public class LoginController {
         //此处将要发送的数据转换为json格式字符串
         String jsonText = "{id:1}";
         JSONObject json = (JSONObject) JSONObject.parse(jsonText);
+
         //该方法用于获得临时文章表中的数据
         JSONObject sr = firstGetTemp(json);
         if (sr.getJSONArray("results").size() > 0) {
+            //获得第一篇需要发表的，去除冲突字段，获得id值
             JSONObject loveStage = (JSONObject) sr.getJSONArray("results").get(0);
-            loveStage.remove("createdAt");
-            loveStage.remove("objectId");
-            loveStage.remove("updatedAt");
             Integer id = loveStage.getInteger("id");
             try {
                 if (getSameSize(id) == 0) {
@@ -56,6 +55,10 @@ public class LoginController {
      * @return
      */
     public void addNewLoveStages(JSONObject tempJson) throws IOException {
+        tempJson.remove("createdAt");
+        String objectId = tempJson.getString("objectId");
+        tempJson.remove("objectId");
+        tempJson.remove("updatedAt");
         OkHttpClient okHttpClient = new OkHttpClient();
         HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStages_URL))
                 .newBuilder();
@@ -70,6 +73,25 @@ public class LoginController {
         Response rep = okHttpClient.newCall(req).execute();
         System.out.println("addNewLoveStages 返回码：" + rep.code());
         System.out.println("addNewLoveStages 返回内容：" + rep.body().string());
+
+        //添加新文章并且修改老文章的status 为0 表示已经使用
+        if (rep.code() == 201) {
+            okHttpClient = new OkHttpClient();
+            urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStagesTemp_URL + "/" + objectId))
+                    .newBuilder();
+            requestBody = FormBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"status\":\"0\"}");
+            req = new Request.Builder()
+                    .url(urlBuilder.build())
+                    .addHeader("content-type", "application/json")
+                    .addHeader("X-Bmob-Application-Id", X_BMOB_APPLICATION_ID)
+                    .addHeader("X-Bmob-REST-API-Key", X_BMOB_REST_API_KEY)
+                    .put(requestBody)
+                    .build();
+            rep = okHttpClient.newCall(req).execute();
+            System.out.println("updateLoveStages objectId：" + objectId);
+            System.out.println("updateLoveStages 返回码：" + rep.code());
+            System.out.println("updateLoveStages 返回内容：" + rep.body().string());
+        }
     }
 
     /**
@@ -113,7 +135,8 @@ public class LoginController {
             OkHttpClient okHttpClient = new OkHttpClient();
             HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStagesTemp_URL))
                     .newBuilder();
-            urlBuilder.addQueryParameter("order", "createdAt");
+            urlBuilder.addQueryParameter("order", "createdAt")
+                    .addQueryParameter("where", "{\"status\":\"1\"}");
             Request req = new Request.Builder()
                     .url(urlBuilder.build())
                     .addHeader("content-type", "application/json")
