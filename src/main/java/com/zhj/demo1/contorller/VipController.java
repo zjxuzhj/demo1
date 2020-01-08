@@ -17,12 +17,11 @@ import java.util.Objects;
  */
 @RestController
 public class VipController {
-    public final static String X_BMOB_APPLICATION_ID = "92b20b26c6cd96638faeea2ebc309b83";
-    public final static String X_BMOB_REST_API_KEY = "cd35bb1567753c81b61d6e9d4a285502";
     public final static String LoveStagesTemp_URL = "https://api2.bmob.cn/1/classes/LoveStagesTemp";
     public final static String LoveStages_URL = "https://api2.bmob.cn/1/classes/LoveStages";
     public final static String User_URL = "https://api2.bmob.cn/1/users";
     public final static String Login_URL = "https://api2.bmob.cn/1/login";
+    private OkHttpClient okHttpClient;
 
     /**
      * 用于接口调用或循环任务自动执行每天检查过期用户
@@ -32,17 +31,18 @@ public class VipController {
     @RequestMapping("/updateVip")
     public void updateVip() {
         // 要调用的接口方法
-
+        okHttpClient = new OkHttpClient.Builder().addInterceptor(new BaseInterceptor()).build();
         try {
-            OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(new BaseInterceptor()).build();
             HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(User_URL))
                     .newBuilder();
             urlBuilder.addQueryParameter("where", "{\"vip\":true}");
-            Request req = new Request.Builder().url(urlBuilder.build()).build();
+            Request req = new Request.Builder()
+                    .url(urlBuilder.build())
+                    .build();
             Response rep = okHttpClient.newCall(req).execute();
             String returnString = rep.body().string();
-            System.out.println("firstGetTemp 返回码：" + rep.code());
-            System.out.println("firstGetTemp 返回内容：" + returnString);
+            System.out.println("查询当前会员 返回码：" + rep.code());
+            System.out.println("查询当前会员 返回内容：" + returnString);
             UserResult userResult = new Gson().fromJson(returnString, UserResult.class);
             for (MyUser result : userResult.getResults()) {
                 SimpleDateFormat var2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -56,8 +56,8 @@ public class VipController {
                     req = new Request.Builder().url(urlBuilder.build()).build();
                     rep = okHttpClient.newCall(req).execute();
                     returnString = rep.body().string();
-                    System.out.println("firstGetTemp 返回码：" + rep.code());
-                    System.out.println("firstGetTemp 返回内容：" + returnString);
+                    System.out.println("登录用户 返回码：" + rep.code());
+                    System.out.println("登录用户 返回内容：" + returnString);
 
 
                     MyUser myUser = new Gson().fromJson(returnString, MyUser.class);
@@ -71,10 +71,13 @@ public class VipController {
                             .build();
                     rep = okHttpClient.newCall(req).execute();
                     returnString = rep.body().string();
-                    System.out.println("firstGetTemp 返回码：" + rep.code());
-                    System.out.println("firstGetTemp 返回内容：" + returnString);
+                    if (rep.code() == 200) {
+                        System.out.println(myUser.getUsername() + " " + myUser.getNickname() + " 会员状态修改成功");
+                    } else {
+                        System.out.println("修改失败 返回内容：" + returnString);
+                    }
                 } else {
-                    System.out.println(result.getNickname() + " 没过期");
+//                    System.out.println(result.getNickname() + " 没过期");
                 }
             }
         } catch (Exception e) {

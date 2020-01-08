@@ -2,6 +2,7 @@ package com.zhj.demo1.contorller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.zhj.demo1.api.BaseInterceptor;
 import com.zhj.demo1.model.LoveResult;
 import okhttp3.*;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,10 +13,9 @@ import java.util.Objects;
 
 @RestController
 public class LoginController {
-    public final static String X_BMOB_APPLICATION_ID = "92b20b26c6cd96638faeea2ebc309b83";
-    public final static String X_BMOB_REST_API_KEY = "cd35bb1567753c81b61d6e9d4a285502";
     public final static String LoveStagesTemp_URL = "https://api2.bmob.cn/1/classes/LoveStagesTemp";
     public final static String LoveStages_URL = "https://api2.bmob.cn/1/classes/LoveStages";
+    private OkHttpClient okHttpClient;
 
     /**
      * 用于接口调用或循环任务自动执行每天添加两篇文章
@@ -24,6 +24,7 @@ public class LoginController {
      */
     @RequestMapping("/getLoveStagesTemp")
     public void getLoveStagesTemp() {
+        okHttpClient = new OkHttpClient.Builder().addInterceptor(new BaseInterceptor()).build();
         //此处将要发送的数据转换为json格式字符串
         String jsonText = "{id:1}";
         JSONObject json = (JSONObject) JSONObject.parse(jsonText);
@@ -59,15 +60,12 @@ public class LoginController {
         String objectId = tempJson.getString("objectId");
         tempJson.remove("objectId");
         tempJson.remove("updatedAt");
-        OkHttpClient okHttpClient = new OkHttpClient();
+
         HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStages_URL))
                 .newBuilder();
         RequestBody requestBody = FormBody.create(MediaType.parse("application/json; charset=utf-8"), tempJson.toJSONString());
         Request req = new Request.Builder()
                 .url(urlBuilder.build())
-                .addHeader("content-type", "application/json")
-                .addHeader("X-Bmob-Application-Id", X_BMOB_APPLICATION_ID)
-                .addHeader("X-Bmob-REST-API-Key", X_BMOB_REST_API_KEY)
                 .post(requestBody)
                 .build();
         Response rep = okHttpClient.newCall(req).execute();
@@ -76,17 +74,10 @@ public class LoginController {
 
         //添加新文章并且修改老文章的status 为0 表示已经使用
         if (rep.code() == 201) {
-            okHttpClient = new OkHttpClient();
             urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStagesTemp_URL + "/" + objectId))
                     .newBuilder();
             requestBody = FormBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"status\":\"0\"}");
-            req = new Request.Builder()
-                    .url(urlBuilder.build())
-                    .addHeader("content-type", "application/json")
-                    .addHeader("X-Bmob-Application-Id", X_BMOB_APPLICATION_ID)
-                    .addHeader("X-Bmob-REST-API-Key", X_BMOB_REST_API_KEY)
-                    .put(requestBody)
-                    .build();
+            req = new Request.Builder().url(urlBuilder.build()).put(requestBody).build();
             rep = okHttpClient.newCall(req).execute();
             System.out.println("updateLoveStages objectId：" + objectId);
             System.out.println("updateLoveStages 返回码：" + rep.code());
@@ -101,18 +92,12 @@ public class LoginController {
      * @return
      */
     public int getSameSize(Integer id) throws IOException {
-        OkHttpClient okHttpClient = new OkHttpClient();
         HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStages_URL))
                 .newBuilder();
         urlBuilder.addQueryParameter("where", "{\"id\":" + id + "}")
                 .addQueryParameter("count", "1")
                 .addQueryParameter("limit", "0");
-        Request req = new Request.Builder()
-                .url(urlBuilder.build())
-                .addHeader("content-type", "application/json")
-                .addHeader("X-Bmob-Application-Id", X_BMOB_APPLICATION_ID)
-                .addHeader("X-Bmob-REST-API-Key", X_BMOB_REST_API_KEY)
-                .build();
+        Request req = new Request.Builder().url(urlBuilder.build()).build();
         Response rep = okHttpClient.newCall(req).execute();
         String returnString = rep.body().string();
         System.out.println("getSameSize 返回码：" + rep.code());
@@ -132,17 +117,11 @@ public class LoginController {
         JSONObject jsonObject;
 
         try {
-            OkHttpClient okHttpClient = new OkHttpClient();
             HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(LoveStagesTemp_URL))
                     .newBuilder();
             urlBuilder.addQueryParameter("order", "createdAt")
                     .addQueryParameter("where", "{\"status\":\"1\"}");
-            Request req = new Request.Builder()
-                    .url(urlBuilder.build())
-                    .addHeader("content-type", "application/json")
-                    .addHeader("X-Bmob-Application-Id", X_BMOB_APPLICATION_ID)
-                    .addHeader("X-Bmob-REST-API-Key", X_BMOB_REST_API_KEY)
-                    .build();
+            Request req = new Request.Builder().url(urlBuilder.build()).build();
             Response rep = okHttpClient.newCall(req).execute();
             String returnString = rep.body().string();
             System.out.println("firstGetTemp 返回码：" + rep.code());
@@ -153,13 +132,6 @@ public class LoginController {
         }
         return jsonObject;
     }
-
-    //    @GetMapping("/selectUser")
-//    @RequestMapping("/selectUser")
-//    public HashMap selectUser(String name) {
-//        return loginService.selectUser(name);
-//    }
-
 
 }
 
