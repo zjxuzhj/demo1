@@ -69,8 +69,8 @@ public class LoginController {
                 .post(requestBody)
                 .build();
         Response rep = okHttpClient.newCall(req).execute();
-        System.out.println("addNewLoveStages 返回码：" + rep.code());
-        System.out.println("addNewLoveStages 返回内容：" + rep.body().string());
+        System.out.println("正式表添加 返回码：" + rep.code());
+        System.out.println("正式表添加 返回内容：" + rep.body().string());
 
         //添加新文章并且修改老文章的status 为0 表示已经使用
         if (rep.code() == 201) {
@@ -79,9 +79,9 @@ public class LoginController {
             requestBody = FormBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"status\":\"0\"}");
             req = new Request.Builder().url(urlBuilder.build()).put(requestBody).build();
             rep = okHttpClient.newCall(req).execute();
-            System.out.println("updateLoveStages objectId：" + objectId);
-            System.out.println("updateLoveStages 返回码：" + rep.code());
-            System.out.println("updateLoveStages 返回内容：" + rep.body().string());
+            System.out.println("临时表修改状态 objectId：" + objectId);
+            System.out.println("临时表修改状态 返回码：" + rep.code());
+            System.out.println("临时表修改状态 返回内容：" + rep.body().string());
         }
     }
 
@@ -100,8 +100,8 @@ public class LoginController {
         Request req = new Request.Builder().url(urlBuilder.build()).build();
         Response rep = okHttpClient.newCall(req).execute();
         String returnString = rep.body().string();
-        System.out.println("getSameSize 返回码：" + rep.code());
-        System.out.println("getSameSize 返回内容：" + returnString);
+        System.out.println("相同文章数 返回码：" + rep.code());
+        System.out.println("相同文章数 返回内容：" + returnString);
         LoveResult loveResult = new Gson().fromJson(returnString, LoveResult.class);
         return loveResult.getCount();
     }
@@ -124,8 +124,8 @@ public class LoginController {
             Request req = new Request.Builder().url(urlBuilder.build()).build();
             Response rep = okHttpClient.newCall(req).execute();
             String returnString = rep.body().string();
-            System.out.println("firstGetTemp 返回码：" + rep.code());
-            System.out.println("firstGetTemp 返回内容：" + returnString);
+            System.out.println("获取临时表 返回码：" + rep.code());
+            System.out.println("获取临时表 返回内容：" + returnString);
             jsonObject = JSONObject.parseObject(returnString);
         } catch (Exception e) {
             throw new RuntimeException(e);
