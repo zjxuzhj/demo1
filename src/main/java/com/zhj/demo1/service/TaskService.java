@@ -1,6 +1,8 @@
 package com.zhj.demo1.service;
 
 import com.zhj.demo1.contorller.LoginController;
+import com.zhj.demo1.contorller.LoveHealingController;
+import com.zhj.demo1.contorller.VipController;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,14 @@ public class TaskService {
 
         System.out.println("执行第二次：：：" + System.currentTimeMillis());
         loginController.getLoveStagesTemp();
+
+        //执行vip状态清除任务
+        VipController vipController = new VipController();
+        vipController.updateVip();
+
+        //每日更新两条实战情话
+        LoveHealingController loveHealingController = new LoveHealingController();
+        loveHealingController.addLoveHealing();
     }
 
     @Scheduled(cron = "0 0 * * * ?")  //每隔一小时执行一次
