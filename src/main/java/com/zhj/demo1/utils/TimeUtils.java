@@ -105,10 +105,10 @@ public class TimeUtils {
         return rightNow.getTime();
     }
 
-    public static Date subMonthToDate(Date date) {
+    public static Date subMonthToDate(Date date,int month) {
         Calendar rightNow = Calendar.getInstance();
         rightNow.setTime(date);
-        rightNow.add(Calendar.MONTH, 1);
+        rightNow.add(Calendar.MONTH, month);
         return rightNow.getTime();
     }
 
